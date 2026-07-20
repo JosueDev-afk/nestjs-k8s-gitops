@@ -1,0 +1,32 @@
+# La aplicación NestJS: el chart vive en el repo de la app (única fuente del
+# "cómo se despliega"); los values del entorno viven aquí (el "qué corre",
+# incluidos los tags de imagen que bumpea el CI).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microservices
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3" # tras la plataforma de observabilidad
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-microservice-stack.git
+      targetRevision: main
+      path: helm
+      helm:
+        releaseName: nestjs
+        valueFiles:
+          - $values/values/aws-dev/microservices.yaml
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: microservices
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false # el namespace lo crea Terraform (capa platform, junto a los ExternalSecrets)

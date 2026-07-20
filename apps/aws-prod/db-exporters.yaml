@@ -1,0 +1,86 @@
+# Exporters de las bases de datos gestionadas: la misma telemetría en AWS y
+# Azure. Sus credenciales llegan como Secrets creados por External Secrets
+# Operator (capa platform del repo de infraestructura).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-exporter
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: prometheus-postgres-exporter
+      targetRevision: 6.0.0
+      helm:
+        releaseName: postgres-exporter
+        valueFiles:
+          - $values/values/aws-prod/postgres-exporter.yaml
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mongodb-exporter
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: prometheus-mongodb-exporter
+      targetRevision: 3.5.0
+      helm:
+        releaseName: mongodb-exporter
+        valueFiles:
+          - $values/values/aws-prod/mongodb-exporter.yaml
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-exporter
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: prometheus-redis-exporter
+      targetRevision: 6.0.2
+      helm:
+        releaseName: redis-exporter
+        valueFiles:
+          - $values/values/aws-prod/redis-exporter.yaml
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

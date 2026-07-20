@@ -1,0 +1,111 @@
+# Entorno aws-dev (EKS dev + datos gestionados).
+# - Los tags de imagen los escribe el CI del repo de la app (yq bump). NO editarlos a mano.
+# - Los REPLACE_ME se rellenan una vez tras `terraform apply` de live/aws/dev
+#   (ver README, sección Bootstrap).
+# - Secretos: SIEMPRE via existingSecret (External Secrets Operator); nada en git.
+
+networkPolicies:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+apiGateway:
+  image: REPLACE_ME_ECR_REGISTRY/api-gateway:bootstrap # ej. <account>.dkr.ecr.us-east-1.amazonaws.com
+  replicas: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  env:
+    USER_SERVICE_URL: 'http://{{ include "nestjs-microservices.component" (dict "root" . "name" "user-service") }}:3001'
+    PRODUCT_SERVICE_URL: 'http://{{ include "nestjs-microservices.component" (dict "root" . "name" "product-service") }}:3002'
+    NOTIFICATION_SERVICE_URL: 'http://{{ include "nestjs-microservices.component" (dict "root" . "name" "notification-service") }}:3003'
+  existingSecret: api-gateway-secrets
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+userService:
+  image: REPLACE_ME_ECR_REGISTRY/user-service:bootstrap
+  replicas: 1
+  service:
+    port: 3001
+  env:
+    DATABASE_HOST: REPLACE_ME_RDS_ENDPOINT_DEV
+    DATABASE_PORT: "5432"
+    DATABASE_NAME: userdb
+    DATABASE_USER: app_user
+    DATABASE_SSL: "true"
+  existingSecret: user-service-secrets
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+productService:
+  image: REPLACE_ME_ECR_REGISTRY/product-service:bootstrap
+  replicas: 1
+  service:
+    port: 3002
+  env: {}
+  existingSecret: product-service-secrets
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+notificationService:
+  image: REPLACE_ME_ECR_REGISTRY/notification-service:bootstrap
+  replicas: 1
+  service:
+    port: 3003
+  env:
+    REDIS_HOST: REPLACE_ME_REDIS_ENDPOINT_DEV
+    REDIS_PORT: "6379"
+    REDIS_TLS: "true"
+  existingSecret: notification-service-secrets
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Datos gestionados fuera del clúster (RDS/DocumentDB/ElastiCache)
+postgres:
+  enabled: false
+mongodb:
+  enabled: false
+redis:
+  enabled: false
+
+# La observabilidad la gestiona ArgoCD (apps de este mismo entorno), no el chart
+monitoring:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    - host: api-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+          port: 3000
+  tls: []

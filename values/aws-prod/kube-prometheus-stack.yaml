@@ -1,0 +1,45 @@
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    # Descubre ServiceMonitors/PodMonitors de cualquier namespace
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    # Scrape de los microservicios NestJS (prom-client /metrics)
+    additionalScrapeConfigs:
+      - job_name: microservices
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [microservices]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: "300[0-9]"
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+
+grafana:
+  # Credenciales materializadas por External Secrets Operator desde
+  # Secrets Manager (nestjs/<env>/observability/grafana-admin). Nada en git.
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.observability.svc:3100
+      access: proxy
+    - name: Tempo
+      type: tempo
+      url: http://tempo.observability.svc:3100
+      access: proxy
+
+alertmanager:
+  enabled: true

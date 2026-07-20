@@ -1,0 +1,9 @@
+config:
+  datasource:
+    # Secret creado por ESO: DATA_SOURCE_NAME=postgresql://user:pass@host:5432/db?sslmode=require
+    existingSecret:
+      enabled: true
+      name: postgres-exporter-datasource
+      key: DATA_SOURCE_NAME
+serviceMonitor:
+  enabled: true

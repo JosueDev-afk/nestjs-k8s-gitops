@@ -1,0 +1,10 @@
+# REPLACE_ME tras `terraform output -raw redis_endpoint` en live/aws/dev/data
+redisAddress: rediss://REPLACE_ME_REDIS_ENDPOINT_PROD:6379
+auth:
+  enabled: true
+  secret:
+    # Secret creado por ESO con la clave REDIS_PASSWORD (auth token ElastiCache)
+    name: redis-exporter-auth
+    key: REDIS_PASSWORD
+serviceMonitor:
+  enabled: true

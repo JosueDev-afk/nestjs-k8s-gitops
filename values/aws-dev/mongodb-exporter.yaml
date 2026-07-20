@@ -1,0 +1,6 @@
+existingSecret:
+  # Secret creado por ESO con la clave MONGODB_URI (URI de DocumentDB)
+  name: mongodb-exporter-uri
+  key: MONGODB_URI
+serviceMonitor:
+  enabled: true

@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0" # primero: instala los CRDs (ServiceMonitor) que usan las demás waves
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 58.7.2
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/values/aws-prod/kube-prometheus-stack.yaml
+    - repoURL: https://github.com/JosueDev-afk/nestjs-k8s-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true # CRDs del stack exceden el límite de client-side apply
