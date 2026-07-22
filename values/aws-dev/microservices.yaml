@@ -12,7 +12,7 @@ podDisruptionBudget:
   minAvailable: 1
 
 apiGateway:
-  image: REPLACE_ME_ECR_REGISTRY/api-gateway:bootstrap # ej. <account>.dkr.ecr.us-east-1.amazonaws.com
+  image: localhost:5100/api-gateway:sha-0b0dc4b
   replicas: 1
   service:
     type: ClusterIP
@@ -31,7 +31,7 @@ apiGateway:
       memory: 512Mi
 
 userService:
-  image: REPLACE_ME_ECR_REGISTRY/user-service:bootstrap
+  image: localhost:5100/user-service:sha-0b0dc4b
   replicas: 1
   service:
     port: 3001
@@ -51,7 +51,7 @@ userService:
       memory: 512Mi
 
 productService:
-  image: REPLACE_ME_ECR_REGISTRY/product-service:bootstrap
+  image: localhost:5100/product-service:sha-0b0dc4b
   replicas: 1
   service:
     port: 3002
@@ -66,7 +66,7 @@ productService:
       memory: 512Mi
 
 notificationService:
-  image: REPLACE_ME_ECR_REGISTRY/notification-service:bootstrap
+  image: localhost:5100/notification-service:sha-0b0dc4b
   replicas: 1
   service:
     port: 3003
