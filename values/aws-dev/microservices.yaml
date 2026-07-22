@@ -14,6 +14,8 @@ podDisruptionBudget:
 apiGateway:
   image: localhost:5100/api-gateway:sha-0b0dc4b
   replicas: 1
+  probes:
+    path: /api/v1/health # el gateway usa setGlobalPrefix('api/v1')
   service:
     type: ClusterIP
     port: 3000
