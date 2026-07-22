@@ -73,9 +73,9 @@ notificationService:
   service:
     port: 3003
   env:
-    REDIS_HOST: REPLACE_ME_REDIS_ENDPOINT_DEV
+    REDIS_HOST: nestjs-nestjs-microservices-redis
     REDIS_PORT: "6379"
-    REDIS_TLS: "true"
+    REDIS_TLS: "false"
   existingSecret: notification-service-secrets
   resources:
     requests:
@@ -89,9 +89,18 @@ notificationService:
 postgres:
   enabled: false
 mongodb:
-  enabled: false
+  enabled: true
+  image: mongo:7
+  storage: 1Gi
+  env:
+    MONGO_INITDB_ROOT_USERNAME: mongo
+    MONGO_INITDB_DATABASE: productdb
+  existingSecret: mongodb-secret
 redis:
-  enabled: false
+  enabled: true
+  image: redis:7-alpine
+  storage: 1Gi
+  existingSecret: redis-secret
 
 # La observabilidad la gestiona ArgoCD (apps de este mismo entorno), no el chart
 monitoring:
